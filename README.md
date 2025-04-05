@@ -1,5 +1,7 @@
 # MockupLab UI
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/c4908b8f-2c30-4305-a3e1-e02477035f9a/deploy-status)](https://app.netlify.com/sites/mockuplab/deploys)
+
 A React TypeScript application for browsing and interacting with design templates. This project features a 3D card deck interface with filtering, search, and detailed template previews.
 
 ## Features
