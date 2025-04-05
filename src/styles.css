@@ -1,0 +1,123 @@
+/* Additional styles to fix animation and card display issues */
+
+/* Fix 3D transforms and ensure they work properly */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Ensure proper 3D rendering */
+.deck-container {
+  perspective: 1500px !important;
+  transform-style: preserve-3d !important;
+}
+
+.deck {
+  transform-style: preserve-3d !important;
+  will-change: transform;
+}
+
+/* Ensure cards are properly positioned with 3D transforms */
+.card {
+  transform-style: preserve-3d !important;
+  will-change: transform, opacity;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+}
+
+/* Fix animation classes with more specific selectors to avoid conflicts */
+.card.fade-out {
+  opacity: 0 !important;
+  transform: scale(0.9) !important;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out !important;
+}
+
+.card.fade-in {
+  opacity: 0 !important;
+  transform: scale(0.95) !important;
+  animation: fadeIn 0.4s ease-out forwards !important;
+  animation-delay: 0.1s !important;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+  }
+}
+
+/* Fix card positioning with more specific selectors */
+.card.active {
+  transform: translateX(0) translateZ(0) rotateY(0) !important;
+  opacity: 1 !important;
+  z-index: 10 !important;
+}
+
+.card.prev {
+  transform: translateX(-60%) translateZ(-200px) rotateY(35deg) !important;
+  opacity: 0.7 !important;
+  z-index: 5 !important;
+}
+
+.card.next {
+  transform: translateX(60%) translateZ(-200px) rotateY(-35deg) !important;
+  opacity: 0.7 !important;
+  z-index: 5 !important;
+}
+
+.card.prev-hidden {
+  transform: translateX(-100%) translateZ(-400px) rotateY(45deg) !important;
+  opacity: 0 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+.card.next-hidden {
+  transform: translateX(100%) translateZ(-400px) rotateY(-45deg) !important;
+  opacity: 0 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+.card.hidden {
+  transform: translateX(0) translateZ(-600px) rotateY(0) !important;
+  opacity: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Responsive adjustments with more specific selectors */
+@media (max-width: 1023px) {
+  .card.prev {
+    transform: translateX(-55%) translateZ(-150px) rotateY(30deg) !important;
+  }
+
+  .card.next {
+    transform: translateX(55%) translateZ(-150px) rotateY(-30deg) !important;
+  }
+
+  .card.prev-hidden {
+    transform: translateX(-90%) translateZ(-300px) rotateY(40deg) !important;
+  }
+
+  .card.next-hidden {
+    transform: translateX(90%) translateZ(-300px) rotateY(-40deg) !important;
+  }
+}
+
+@media (max-width: 639px) {
+  .card.prev {
+    transform: translateX(-50%) translateZ(-100px) rotateY(25deg) !important;
+  }
+
+  .card.next {
+    transform: translateX(50%) translateZ(-100px) rotateY(-25deg) !important;
+  }
+
+  .card.prev-hidden {
+    transform: translateX(-80%) translateZ(-200px) rotateY(35deg) !important;
+  }
+
+  .card.next-hidden {
+    transform: translateX(80%) translateZ(-200px) rotateY(-35deg) !important;
+  }
+}
