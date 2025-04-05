@@ -146,10 +146,14 @@ html, body {
   left: 0;
   right: 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: 1rem 2rem;
   z-index: 100;
+}
+
+.header .brand-logo {
+  margin-right: auto;
 }
 
 .user-menu-container {
