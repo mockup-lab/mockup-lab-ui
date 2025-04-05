@@ -58,14 +58,14 @@ const TemplateCard = ({
     if (cardRef.current) {
       cardRef.current.style.transformStyle = 'preserve-3d';
       cardRef.current.style.backfaceVisibility = 'hidden';
-      cardRef.current.style.WebkitBackfaceVisibility = 'hidden'; // Add webkit prefix
+      (cardRef.current.style as any).WebkitBackfaceVisibility = 'hidden'; // Add webkit prefix
       cardRef.current.style.willChange = 'transform, opacity';
     }
 
     if (cardInnerRef.current) {
       cardInnerRef.current.style.transformStyle = 'preserve-3d';
       cardInnerRef.current.style.backfaceVisibility = 'hidden';
-      cardInnerRef.current.style.WebkitBackfaceVisibility = 'hidden'; // Add webkit prefix
+      (cardInnerRef.current.style as any).WebkitBackfaceVisibility = 'hidden'; // Add webkit prefix
     }
   }, []);
 
@@ -100,7 +100,8 @@ const TemplateCard = ({
         WebkitBackfaceVisibility: 'hidden',
         willChange: 'transform, opacity',
         opacity: isLoaded ? undefined : 0, // Hide until image is loaded
-        transition: 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)'
+        transition: 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)',
+        pointerEvents: isActive ? 'auto' : 'none' // Only allow interaction with active card
       }}
     >
       <div

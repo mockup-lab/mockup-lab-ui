@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { TemplateData } from '../types';
 import TemplateCard from './TemplateCard';
 
@@ -10,13 +10,23 @@ interface TemplateDeckProps {
   onCardClick: (templateIndex: number) => void;
 }
 
-const TemplateDeck = ({
+// Define the ref interface
+export interface TemplateDeckHandle {
+  handlePrev: () => void;
+  handleNext: () => void;
+  handleCardClick: (templateIndex: number) => void;
+  readonly isNavigating: boolean;
+}
+
+const TemplateDeck = forwardRef<TemplateDeckHandle, TemplateDeckProps>(({
   templates,
   activeIndex,
   setActiveIndex,
   isAnimatingFilter,
   onCardClick,
-}: TemplateDeckProps) => {
+}, ref) => {
+  const [isNavigatingInternal, setIsNavigatingInternal] = useState(false);
+  
   const [isFadingOut, setIsFadingOut] = useState(false);
   const deckRef = useRef<HTMLDivElement>(null);
   const touchStartXRef = useRef(0);
@@ -33,64 +43,71 @@ const TemplateDeck = ({
     setIsInitialized(true);
   }, []);
 
-  const handlePrev = useCallback(() => {
-    if (templates.length === 0) return;
+  // Handle navigation
+  useEffect(() => {
+    if (isNavigatingInternal) {
+      const timer = setTimeout(() => {
+        setIsNavigatingInternal(false);
+      }, 1000); // Increased timeout to ensure animations complete
+      return () => clearTimeout(timer);
+    }
+  }, [isNavigatingInternal]);
 
-    // Allow navigation even during animations for better responsiveness
-    // Just store the click and process it after animation completes
-    if (isAnimatingFilter || isFadingOut) {
-      // Schedule the navigation after animation completes
-      setTimeout(() => {
-        setActiveIndex((prevIndex) => (prevIndex - 1 + templates.length) % templates.length);
-      }, 300);
+  const navigateTo = useCallback((newIndex: number) => {
+    if (templates.length === 0 || isNavigatingInternal) {
       return;
     }
 
-    // Normal navigation when not animating
-    setActiveIndex((activeIndex - 1 + templates.length) % templates.length);
-  }, [templates, activeIndex, isAnimatingFilter, isFadingOut, setActiveIndex]);
+    setIsNavigatingInternal(true);
+    setActiveIndex(newIndex);
+
+    // Force reflow for CSS transitions
+    if (deckRef.current) {
+      void deckRef.current.offsetHeight;
+    }
+
+    // Ensure ref updates before any parent checks
+    setTimeout(() => {}, 0);
+  }, [templates, isNavigatingInternal, setActiveIndex]);
+
+  const handlePrev = useCallback(() => {
+    const newIndex = (activeIndex - 1 + templates.length) % templates.length;
+    navigateTo(newIndex);
+  }, [activeIndex, templates, navigateTo]);
 
   const handleNext = useCallback(() => {
-    if (templates.length === 0) return;
+    const newIndex = (activeIndex + 1) % templates.length;
+    navigateTo(newIndex);
+  }, [activeIndex, templates, navigateTo]);
 
-    // Allow navigation even during animations for better responsiveness
-    if (isAnimatingFilter || isFadingOut) {
-      // Schedule the navigation after animation completes
-      setTimeout(() => {
-        setActiveIndex((prevIndex) => (prevIndex + 1) % templates.length);
-      }, 300);
-      return;
-    }
+  const handleCardClick = useCallback((templateIndex: number) => {
+    if (isNavigatingInternal) return;
 
-    // Normal navigation when not animating
-    setActiveIndex((activeIndex + 1) % templates.length);
-  }, [templates, activeIndex, isAnimatingFilter, isFadingOut, setActiveIndex]);
-
-  const handleCardClick = (templateIndex: number) => {
-    // Allow clicks even during animations for better responsiveness
-    // but delay the action until animation completes
-    if (isAnimatingFilter || isFadingOut) {
-      setTimeout(() => {
-        const currentIndexInFiltered = templates.findIndex(item => item.index === templateIndex);
-
-        if (currentIndexInFiltered === activeIndex) {
-          onCardClick(templateIndex);
-        } else if (currentIndexInFiltered !== -1) {
-          setActiveIndex(currentIndexInFiltered);
-        }
-      }, 300);
-      return;
-    }
-
-    // Normal behavior when not animating
+    // Find the index of the clicked template in the filtered list
     const currentIndexInFiltered = templates.findIndex(item => item.index === templateIndex);
 
+    // If clicking the active card, open the modal
     if (currentIndexInFiltered === activeIndex) {
       onCardClick(templateIndex);
-    } else if (currentIndexInFiltered !== -1) {
-      setActiveIndex(currentIndexInFiltered);
+      return;
     }
-  };
+
+    // If clicking a different card, update the active index
+    if (currentIndexInFiltered !== -1) {
+      // Start navigation to clicked card
+      navigateTo(currentIndexInFiltered);
+    }
+  }, [templates, activeIndex, onCardClick, isNavigatingInternal]);
+
+  // Expose methods and state to parent component via ref
+  useImperativeHandle(ref, () => ({
+    handlePrev,
+    handleNext,
+    handleCardClick,
+    get isNavigating() {
+      return isNavigatingInternal;
+    }
+  }), [handlePrev, handleNext, handleCardClick, isNavigatingInternal]);
 
   // Touch event handlers for swipe navigation
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -117,7 +134,7 @@ const TemplateDeck = ({
   };
 
   const handleTouchEnd = () => {
-    if (!isSwipingRef.current) return;
+    if (!isSwipingRef.current || isNavigatingInternal) return;
 
     isSwipingRef.current = false;
     const diffX = touchEndXRef.current - touchStartXRef.current;
@@ -136,44 +153,16 @@ const TemplateDeck = ({
     touchEndYRef.current = 0;
   };
 
-  // Keyboard navigation
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Always check if we can navigate, regardless of focus state
-    // This makes keyboard navigation more reliable
-
-    switch (e.key) {
-      case 'ArrowLeft':
-        handlePrev();
-        e.preventDefault();
-        break;
-      case 'ArrowRight':
-        handleNext();
-        e.preventDefault();
-        break;
-      default:
-        break;
-    }
-  }, [handlePrev, handleNext]);
-
-  // Set up keyboard event listeners
+  // Apply filter animation and handle navigation state
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown]);
-
-  // Apply filter animation
-  useEffect(() => {
-    if (isAnimatingFilter) {
+    if (isAnimatingFilter || isNavigatingInternal) {
       setIsFadingOut(true);
       const timer = setTimeout(() => {
         setIsFadingOut(false);
-      }, 300);
+      }, 600); // Match the CSS transition duration (0.6s = 600ms)
       return () => clearTimeout(timer);
     }
-  }, [isAnimatingFilter]);
+  }, [isAnimatingFilter, isNavigatingInternal]);
 
   // Get card position class based on its index relative to active index
   const getCardPositionClass = (cardIndex: number) => {
@@ -209,7 +198,7 @@ const TemplateDeck = ({
 
   return (
     <div
-      className="deck-container"
+      className={`deck-container ${isNavigatingInternal ? 'navigating' : ''}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -220,7 +209,8 @@ const TemplateDeck = ({
       tabIndex={0} // Make the container focusable
       style={{
         perspective: '1500px',
-        outline: 'none' // Remove focus outline
+        outline: 'none', // Remove focus outline
+        pointerEvents: isNavigatingInternal ? 'none' : 'auto' // Prevent interactions during navigation
       }}
     >
       <div
@@ -309,6 +299,6 @@ const TemplateDeck = ({
       </div>
     </div>
   );
-};
+});
 
 export default TemplateDeck;

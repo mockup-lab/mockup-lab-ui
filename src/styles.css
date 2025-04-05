@@ -5,10 +5,22 @@ html, body {
   overflow-x: hidden;
 }
 
+/* Prevent flickering during transitions */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* Ensure proper 3D rendering */
 .deck-container {
   perspective: 1500px !important;
   transform-style: preserve-3d !important;
+}
+
+/* Disable navigation buttons during transitions */
+.deck-container.navigating .nav-arrow {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
 }
 
 .deck {
@@ -22,19 +34,21 @@ html, body {
   will-change: transform, opacity;
   backface-visibility: hidden !important;
   -webkit-backface-visibility: hidden !important;
+  transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1),
+              opacity 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
 
 /* Fix animation classes with more specific selectors to avoid conflicts */
 .card.fade-out {
   opacity: 0 !important;
   transform: scale(0.9) !important;
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out !important;
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out !important;
 }
 
 .card.fade-in {
   opacity: 0 !important;
   transform: scale(0.95) !important;
-  animation: fadeIn 0.4s ease-out forwards !important;
+  animation: fadeIn 0.6s ease-out forwards !important;
   animation-delay: 0.1s !important;
 }
 
@@ -50,18 +64,21 @@ html, body {
   transform: translateX(0) translateZ(0) rotateY(0) !important;
   opacity: 1 !important;
   z-index: 10 !important;
+  pointer-events: auto !important;
 }
 
 .card.prev {
   transform: translateX(-60%) translateZ(-200px) rotateY(35deg) !important;
   opacity: 0.7 !important;
   z-index: 5 !important;
+  pointer-events: none !important;
 }
 
 .card.next {
   transform: translateX(60%) translateZ(-200px) rotateY(-35deg) !important;
   opacity: 0.7 !important;
   z-index: 5 !important;
+  pointer-events: none !important;
 }
 
 .card.prev-hidden {

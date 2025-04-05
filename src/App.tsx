@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { TemplateDeckHandle } from './components/TemplateDeck';
 import StarfieldCanvas from './components/StarfieldCanvas';
 import SearchBar from './components/SearchBar';
 import FilterContainer from './components/FilterContainer';
@@ -87,11 +88,13 @@ function App() {
 
   // Refs
   const debounceTimerRef = useRef<number | null>(null);
+  const deckRef = useRef<TemplateDeckHandle>(null);
 
   // Filter and search logic
   const applyFiltersAndSearch = useCallback(() => {
     if (isAnimatingFilter) return;
 
+    console.log('Starting filter animation, isNavigating:', deckRef.current?.isNavigating);
     setIsAnimatingFilter(true);
 
     // Use setTimeout to allow for animation
@@ -115,7 +118,15 @@ function App() {
         setCurrentTemplateData(filteredByCategory);
       }
 
-      setActiveIndex(0);
+      // Only reset activeIndex if not animating and not navigating and there are templates
+      // Use setTimeout to ensure we get the latest ref value
+      const isCurrentlyNavigating = setTimeout(() => deckRef.current?.isNavigating, 0);
+      console.log('Applying filters, isCurrentlyNavigating:', isCurrentlyNavigating);
+      const shouldReset = !isAnimatingFilter && !isCurrentlyNavigating && currentTemplateData.length > 0;
+      console.log('Applying filters, should reset activeIndex:', shouldReset);
+      if (shouldReset) {
+        setActiveIndex(0);
+      }
       setIsAnimatingFilter(false);
     }, 300);
   }, [currentFilter, searchTerm, isAnimatingFilter]);
@@ -150,6 +161,7 @@ function App() {
     }
   }, []);
 
+
   // Handle navigation with arrow keys
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Skip if modal is open or search is focused
@@ -158,47 +170,32 @@ function App() {
     // Skip if there are no templates
     if (currentTemplateData.length === 0) return;
 
-    // Allow navigation even during animations
-    if (isAnimatingFilter) {
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Enter') {
-        // Store the key press and process after animation
-        setTimeout(() => {
-          if (e.key === 'ArrowLeft') {
-            setActiveIndex((prevIndex) =>
-              (prevIndex - 1 + currentTemplateData.length) % currentTemplateData.length
-            );
-          } else if (e.key === 'ArrowRight') {
-            setActiveIndex((prevIndex) =>
-              (prevIndex + 1) % currentTemplateData.length
-            );
-          } else if (e.key === 'Enter' && currentTemplateData[activeIndex]) {
-            handleCardClick(currentTemplateData[activeIndex].index);
+    // Delegate to the TemplateDeck component's handlers
+    if (deckRef.current) {
+      switch (e.key) {
+        case 'ArrowLeft':
+          if (deckRef.current.handlePrev) {
+            deckRef.current.handlePrev();
+            e.preventDefault();
           }
-        }, 300);
+          break;
+        case 'ArrowRight':
+          if (deckRef.current.handleNext) {
+            deckRef.current.handleNext();
+            e.preventDefault();
+          }
+          break;
+        case 'Enter':
+          if (currentTemplateData[activeIndex] && deckRef.current.handleCardClick) {
+            deckRef.current.handleCardClick(currentTemplateData[activeIndex].index);
+            e.preventDefault();
+          }
+          break;
+        default:
+          break;
       }
-      return;
     }
-
-    // Normal navigation when not animating
-    switch (e.key) {
-      case 'ArrowLeft':
-        setActiveIndex((activeIndex - 1 + currentTemplateData.length) % currentTemplateData.length);
-        e.preventDefault();
-        break;
-      case 'ArrowRight':
-        setActiveIndex((activeIndex + 1) % currentTemplateData.length);
-        e.preventDefault();
-        break;
-      case 'Enter':
-        if (currentTemplateData[activeIndex]) {
-          handleCardClick(currentTemplateData[activeIndex].index);
-        }
-        e.preventDefault();
-        break;
-      default:
-        break;
-    }
-  }, [activeIndex, currentTemplateData, isAnimatingFilter, modalVisible, isSearchFocused, handleCardClick]);
+  }, [activeIndex, currentTemplateData, modalVisible, isSearchFocused]);
 
   // Set up global keyboard event listeners
   useEffect(() => {
@@ -243,6 +240,7 @@ function App() {
       />
 
       <TemplateDeck
+        ref={deckRef}
         templates={currentTemplateData}
         activeIndex={activeIndex}
         setActiveIndex={setActiveIndex}
