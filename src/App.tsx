@@ -209,7 +209,7 @@ function App() {
   // Apply filters when filter or search changes
   useEffect(() => {
     applyFiltersAndSearch();
-  }, [currentFilter, applyFiltersAndSearch]);
+  }, [currentFilter]); // Trigger only when the filter itself changes
 
   // Clean up any timers on unmount
   useEffect(() => {
