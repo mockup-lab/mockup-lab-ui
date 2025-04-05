@@ -138,7 +138,6 @@ const AppContent = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateData | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [showFavorites, setShowFavorites] = useState(false);
   const [favoriteTemplates, setFavoriteTemplates] = useState<TemplateData[]>([]);
 
   // Refs
@@ -157,19 +156,12 @@ const AppContent = () => {
         }
       } else {
         setFavoriteTemplates([]);
-        if (showFavorites) {
-          setShowFavorites(false);
-        }
       }
     };
 
     loadFavorites();
   }, [user, userProfile]);
 
-  // Toggle favorites filter
-  const handleToggleFavorites = useCallback(() => {
-    setShowFavorites(prev => !prev);
-  }, []);
 
   // Filter and search logic
   const applyFiltersAndSearch = useCallback(() => {
@@ -179,8 +171,14 @@ const AppContent = () => {
 
     // Use setTimeout to allow for animation
     setTimeout(() => {
-      // Start with all templates or favorites
-      let baseTemplates = showFavorites ? [...favoriteTemplates] : [...allTemplateData];
+      // Start with all templates
+      let baseTemplates: TemplateData[] = [];
+
+      if (currentFilter === 'My Favorites') {
+        baseTemplates = [...favoriteTemplates];
+      } else {
+        baseTemplates = [...allTemplateData];
+      }
 
       // Apply category filter
       let filteredByCategory = (currentFilter === 'All')
@@ -211,7 +209,7 @@ const AppContent = () => {
       }
       setIsAnimatingFilter(false);
     }, 300);
-  }, [currentFilter, searchTerm, isAnimatingFilter, showFavorites, favoriteTemplates, allTemplateData]);
+  }, [currentFilter, searchTerm, isAnimatingFilter, favoriteTemplates, allTemplateData]);
 
   // Handle filter change
   const handleFilterChange = useCallback((filter: string) => {
@@ -290,7 +288,7 @@ const AppContent = () => {
   // Apply filters when filter, search, or favorites changes
   useEffect(() => {
     applyFiltersAndSearch();
-  }, [currentFilter, showFavorites, favoriteTemplates]); // Trigger when these change
+  }, [currentFilter, favoriteTemplates]); // Trigger when these change
 
   // Clean up any timers on unmount
   useEffect(() => {
@@ -320,15 +318,15 @@ const AppContent = () => {
 
         <div className="filters-row">
           <FilterContainer
-            categories={['All', ...Array.from(new Set(allTemplateData.map(item => item.category)))]}
+            categories={[
+              'All',
+              'My Favorites',
+              ...Array.from(new Set(allTemplateData.map(item => item.category)))
+            ]}
             currentFilter={currentFilter}
             onFilterChange={handleFilterChange}
           />
-
-          <FavoritesFilter
-            showFavorites={showFavorites}
-            onToggleFavorites={handleToggleFavorites}
-          />
+          {/* Remove the standalone FavoritesFilter */}
         </div>
       </div>
 

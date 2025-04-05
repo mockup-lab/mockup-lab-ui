@@ -4,7 +4,11 @@ interface FilterContainerProps {
   onFilterChange: (filter: string) => void;
 }
 
-const FilterContainer = ({ categories, currentFilter, onFilterChange }: FilterContainerProps) => {
+const FilterContainer = ({
+  categories,
+  currentFilter,
+  onFilterChange
+}: FilterContainerProps) => {
   return (
     <div className="filter-container">
       {categories.map((category) => (
