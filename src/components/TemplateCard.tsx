@@ -1,5 +1,9 @@
 import { useRef, useEffect, useState } from 'react';
+import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import { MdStars } from 'react-icons/md';
 import { TemplateData } from '../types';
+import { useAuth } from '../contexts/AuthContext';
+import { toggleFavorite, isTemplateFavorited } from '../services/favoriteService';
 
 interface TemplateCardProps {
   template: TemplateData;
@@ -19,6 +23,24 @@ const TemplateCard = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const cardInnerRef = useRef<HTMLDivElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const { user, userProfile } = useAuth();
+
+  // Check if template is favorited
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (user && userProfile && template.id) {
+        try {
+          const favorited = await isTemplateFavorited(user.uid, template.id);
+          setIsFavorite(favorited);
+        } catch (error) {
+          console.error('Error checking favorite status:', error);
+        }
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [user, userProfile, template.id]);
 
   // Handle tilt effect on mouse move
   const handleTilt = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -51,6 +73,20 @@ const TemplateCard = ({
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     e.currentTarget.src = `https://placehold.co/400x350/cccccc/ffffff?text=Image+Error`;
     setIsLoaded(true);
+  };
+
+  // Handle favorite toggle
+  const handleFavoriteToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+
+    if (!user || !template.id) return;
+
+    try {
+      const newFavoriteStatus = await toggleFavorite(user.uid, template.id);
+      setIsFavorite(newFavoriteStatus);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
   };
 
   // Apply initial styles
@@ -119,6 +155,26 @@ const TemplateCard = ({
           onError={handleImageError}
           onLoad={handleImageLoad}
         />
+
+        {/* Premium badge */}
+        {template.isPremium && (
+          <div className="premium-badge">
+            <MdStars size={16} />
+            <span>Premium</span>
+          </div>
+        )}
+
+        {/* Favorite button */}
+        {user && isActive && (
+          <button
+            className={`favorite-button ${isFavorite ? 'favorited' : ''}`}
+            onClick={handleFavoriteToggle}
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            {isFavorite ? <FaHeart size={18} /> : <FaRegHeart size={18} />}
+          </button>
+        )}
+
         <div className="card-content">
           <div>
             <h3 className="card-title">{template.title}</h3>
