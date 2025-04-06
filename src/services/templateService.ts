@@ -1,12 +1,11 @@
-import { 
-  collection, 
-  getDocs, 
-  getDoc, 
-  doc, 
-  query, 
-  where, 
-  orderBy, 
-  limit,
+import {
+  collection,
+  getDocs,
+  getDoc,
+  doc,
+  query,
+  where,
+  orderBy,
   updateDoc,
   arrayUnion,
   Timestamp
