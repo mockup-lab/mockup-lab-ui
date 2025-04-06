@@ -9,4 +9,9 @@ export default defineConfig({
       jsxImportSource: 'react',
     })
   ],
+  resolve: {
+    alias: {
+      '@': '/src',
+    },
+  },
 })

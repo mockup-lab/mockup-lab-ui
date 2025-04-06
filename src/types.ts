@@ -7,7 +7,9 @@ export interface TemplateData {
   title: string;
   description: string;
   longDescription?: string;
-  image: string;
+  image: string; // legacy or fallback image
+  thumbnailUrl?: string; // small image for card deck
+  fullImageUrl?: string; // large preview image for modal
   tags: string[];
   price?: number; // Price in USD, 0 for free templates
   isPremium?: boolean; // Whether this is a premium template
@@ -25,6 +27,7 @@ export interface UserProfile {
   createdAt: Date;
   favorites: string[]; // Array of template IDs
   purchases: string[]; // Array of purchased template IDs
+  isAdmin?: boolean; // Admin flag
 }
 
 export interface AuthContextType {

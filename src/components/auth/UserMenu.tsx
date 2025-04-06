@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import AuthModal from './AuthModal';
 
 const UserMenu = () => {
+  const navigate = useNavigate();
   const { user, userProfile, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -67,6 +69,18 @@ const UserMenu = () => {
               </div>
               
               <div className="menu-divider"></div>
+
+              {userProfile?.isAdmin && (
+                <button
+                  className="menu-item"
+                  onClick={() => {
+                    navigate('/admin');
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  Admin Dashboard
+                </button>
+              )}
               
               <button className="menu-item" onClick={() => { setIsMenuOpen(false); }}>
                 My Favorites

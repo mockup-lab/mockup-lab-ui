@@ -170,7 +170,7 @@ const TemplateModal = ({ isVisible, template, onClose }: TemplateModalProps) => 
           <div className="modal-header">
             <img
               className="modal-image"
-              src={template.image.replace('350', '400')}
+              src={template.fullImageUrl || template.image.replace('350', '400')}
               alt={`${template.title} Large Preview`}
               onError={handleImageError}
             />

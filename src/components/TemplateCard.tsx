@@ -150,7 +150,7 @@ const TemplateCard = ({
         }}
       >
         <img
-          src={template.image}
+          src={template.thumbnailUrl || template.image}
           alt={`${template.title} Preview`}
           onError={handleImageError}
           onLoad={handleImageLoad}

@@ -1,126 +1,59 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { TemplateDeckHandle } from './components/TemplateDeck';
+import AdminDashboard from './components/admin/AdminDashboard';
 import StarfieldCanvas from './components/StarfieldCanvas';
 import SearchBar from './components/SearchBar';
 import FilterContainer from './components/FilterContainer';
 import TemplateDeck from './components/TemplateDeck';
 import TemplateModal from './components/TemplateModal';
-import DebugPanel from './components/DebugPanel';
 import UserMenu from './components/auth/UserMenu';
-import FavoritesFilter from './components/FavoritesFilter';
+import TermsAndConditions from './components/TermsAndConditions';
+import Logo from './components/Logo';
+import CancellationAndRefund from './components/CancellationAndRefund';
+import ShippingAndDelivery from './components/ShippingAndDelivery';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import ContactUs from './components/ContactUs';
 import { TemplateData } from './types';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { getFavoriteTemplates } from './services/templateService';
 
-// Sample template data (will be replaced with Firestore data in production)
-const sampleTemplateData: TemplateData[] = [
-  {
-    id: "template-001",
-    index: 0,
-    category: "Portfolio",
-    title: "Modern Portfolio",
-    description: "Sleek design for creatives.",
-    longDescription: "This template features a clean layout with smooth animations...",
-    image: "https://placehold.co/400x350/7c3aed/ffffff?text=Portfolio",
-    tags: ["Portfolio", "Creative", "Minimal", "Responsive", "Design"],
-    isPremium: false,
-    price: 0,
-    demoUrl: "https://example.com/demo/modern-portfolio",
-    downloadUrl: "https://example.com/download/modern-portfolio"
-  },
-  {
-    id: "template-002",
-    index: 1,
-    category: "E-commerce",
-    title: "E-commerce Pro",
-    description: "Feature-rich online store.",
-    longDescription: "Boost your online sales with E-commerce Pro...",
-    image: "https://placehold.co/400x350/db2777/ffffff?text=E-commerce",
-    tags: ["E-commerce", "Store", "Business", "React", "Shopify"],
-    isPremium: true,
-    price: 49.99,
-    demoUrl: "https://example.com/demo/ecommerce-pro",
-    downloadUrl: "https://example.com/download/ecommerce-pro"
-  },
-  {
-    id: "template-003",
-    index: 2,
-    category: "Blog",
-    title: "Minimal Blog",
-    description: "Content-focused layout.",
-    longDescription: "Put your content front and center...",
-    image: "https://placehold.co/400x350/16a34a/ffffff?text=Blog",
-    tags: ["Blog", "Minimal", "Content", "SEO", "Writing"],
-    isPremium: false,
-    price: 0,
-    demoUrl: "https://example.com/demo/minimal-blog",
-    downloadUrl: "https://example.com/download/minimal-blog"
-  },
-  {
-    id: "template-004",
-    index: 3,
-    category: "Landing Page",
-    title: "SaaS Landing Page",
-    description: "Convert visitors effectively.",
-    longDescription: "High-converting landing page template...",
-    image: "https://placehold.co/400x350/ca8a04/ffffff?text=SaaS+Landing",
-    tags: ["SaaS", "Landing Page", "Startup", "Lead Gen", "Software"],
-    isPremium: true,
-    price: 39.99,
-    demoUrl: "https://example.com/demo/saas-landing",
-    downloadUrl: "https://example.com/download/saas-landing"
-  },
-  {
-    id: "template-005",
-    index: 4,
-    category: "Portfolio",
-    title: "Agency Showcase",
-    description: "Professional look for agencies.",
-    longDescription: "Showcase your agency's services...",
-    image: "https://placehold.co/400x350/0ea5e9/ffffff?text=Agency",
-    tags: ["Agency", "Business", "Portfolio", "Corporate", "Services"],
-    isPremium: true,
-    price: 59.99,
-    demoUrl: "https://example.com/demo/agency-showcase",
-    downloadUrl: "https://example.com/download/agency-showcase"
-  },
-  {
-    id: "template-006",
-    index: 5,
-    category: "Blog",
-    title: "Travel Blog",
-    description: "Share your adventures visually.",
-    longDescription: "A visually rich blog template perfect for travel writers...",
-    image: "https://placehold.co/400x350/0d9488/ffffff?text=Travel+Blog",
-    tags: ["Blog", "Travel", "Photography", "Content", "Adventure"],
-    isPremium: false,
-    price: 0,
-    demoUrl: "https://example.com/demo/travel-blog",
-    downloadUrl: "https://example.com/download/travel-blog"
-  },
-  {
-    id: "template-007",
-    index: 6,
-    category: "E-commerce",
-    title: "Craft Store",
-    description: "Charming store for artisans.",
-    longDescription: "A friendly and warm e-commerce template ideal for selling handmade goods...",
-    image: "https://placehold.co/400x350/c026d3/ffffff?text=Craft+Store",
-    tags: ["E-commerce", "Handmade", "Artisan", "Store", "Crafts"],
-    isPremium: true,
-    price: 44.99,
-    demoUrl: "https://example.com/demo/craft-store",
-    downloadUrl: "https://example.com/download/craft-store"
-  }
-];
+import { getAllTemplates } from './services/templateService';
+
+// Main App component wrapped with AuthProvider
 
 // Main App component wrapped with AuthProvider
 const AppWithAuth = () => {
   return (
     <AuthProvider>
-      <AppContent />
+      <Router>
+        <Routes>
+          <Route path="/admin" element={<AdminRoute />} />
+          <Route path="*" element={<AppContent />} />
+        </Routes>
+      </Router>
     </AuthProvider>
   );
+};
+
+// Admin route wrapper
+const AdminRoute = () => {
+  const { user, userProfile } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (userProfile === undefined || userProfile === null) {
+    // Profile still loading
+    return <div>Loading...</div>;
+  }
+
+  if (userProfile.isAdmin) {
+    return <AdminDashboard />;
+  }
+
+  return <Navigate to="/" replace />;
 };
 
 // Main App content
@@ -129,8 +62,8 @@ const AppContent = () => {
   const { user, userProfile } = useAuth();
 
   // State
-  const [allTemplateData, setAllTemplateData] = useState<TemplateData[]>(sampleTemplateData);
-  const [currentTemplateData, setCurrentTemplateData] = useState<TemplateData[]>([...sampleTemplateData]);
+  const [allTemplateData, setAllTemplateData] = useState<TemplateData[]>([]);
+  const [currentTemplateData, setCurrentTemplateData] = useState<TemplateData[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [currentFilter, setCurrentFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -138,6 +71,9 @@ const AppContent = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateData | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  const [loadingTemplates, setLoadingTemplates] = useState<boolean>(true);
+  const [templateError, setTemplateError] = useState<string | null>(null);
   const [favoriteTemplates, setFavoriteTemplates] = useState<TemplateData[]>([]);
 
   // Refs
@@ -161,6 +97,25 @@ const AppContent = () => {
 
     loadFavorites();
   }, [user, userProfile]);
+
+  // Fetch templates from Firestore on mount
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      setLoadingTemplates(true);
+      setTemplateError(null);
+      try {
+        const templates = await getAllTemplates();
+        setAllTemplateData(templates);
+        setCurrentTemplateData(templates);
+      } catch (error) {
+        console.error('Error fetching templates:', error);
+        setTemplateError('Failed to load templates.');
+      } finally {
+        setLoadingTemplates(false);
+      }
+    };
+    fetchTemplates();
+  }, []);
 
 
   // Filter and search logic
@@ -304,54 +259,104 @@ const AppContent = () => {
       <StarfieldCanvas />
 
       <div className="header">
-        <div className="brand-logo">mockuplab.in</div>
-        <UserMenu />
-      </div>
-
-      <div className="search-and-filters">
-        <SearchBar
-          value={searchTerm}
-          onChange={handleSearchInput}
-          onFocus={() => setIsSearchFocused(true)}
-          onBlur={() => setIsSearchFocused(false)}
-        />
-
-        <div className="filters-row">
-          <FilterContainer
-            categories={[
-              'All',
-              'My Favorites',
-              ...Array.from(new Set(allTemplateData.map(item => item.category)))
-            ]}
-            currentFilter={currentFilter}
-            onFilterChange={handleFilterChange}
-          />
-          {/* Remove the standalone FavoritesFilter */}
+        <Link to="/" className="brand-logo" style={{ display: 'flex', alignItems: 'center' }}>
+          <Logo style={{ width: 40, height: 40, marginRight: 8 }} />
+          mockuplab.in
+        </Link>
+        <div className="mt-2">
+          <UserMenu />
         </div>
       </div>
 
-      <TemplateDeck
-        ref={deckRef}
-        templates={currentTemplateData}
-        activeIndex={activeIndex}
-        setActiveIndex={setActiveIndex}
-        isAnimatingFilter={isAnimatingFilter}
-        onCardClick={handleCardClick}
-      />
+      <Routes>
+        <Route path="/terms" element={<TermsAndConditions />} />
+        <Route path="/cancellation" element={<CancellationAndRefund />} />
+        <Route path="/shipping" element={<ShippingAndDelivery />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route
+          path="*"
+          element={
+            <>
+              {loadingTemplates ? (
+                <div className="loading-message">Loading templates...</div>
+              ) : templateError ? (
+                <div className="error-message">{templateError}</div>
+              ) : (
+                <>
+                  <div className="search-and-filters">
+                    <SearchBar
+                      value={searchTerm}
+                      onChange={handleSearchInput}
+                      onFocus={() => setIsSearchFocused(true)}
+                      onBlur={() => setIsSearchFocused(false)}
+                    />
 
-      {selectedTemplate && (
-        <TemplateModal
-          isVisible={modalVisible}
-          template={selectedTemplate}
-          onClose={() => setModalVisible(false)}
+                    <div className="filters-row">
+                      <FilterContainer
+                        categories={[
+                          'All',
+                          'My Favorites',
+                          ...Array.from(new Set(allTemplateData.map(item => item.category)))
+                        ]}
+                        currentFilter={currentFilter}
+                        onFilterChange={handleFilterChange}
+                      />
+                    </div>
+                  </div>
+
+                  <TemplateDeck
+                    ref={deckRef}
+                    templates={currentTemplateData}
+                    activeIndex={activeIndex}
+                    setActiveIndex={setActiveIndex}
+                    isAnimatingFilter={isAnimatingFilter}
+                    onCardClick={handleCardClick}
+                  />
+
+                  {selectedTemplate && (
+                    <TemplateModal
+                      isVisible={modalVisible}
+                      template={selectedTemplate}
+                      onClose={() => setModalVisible(false)}
+                    />
+                  )}
+                </>
+              )}
+            </>
+          }
         />
-      )}
+      </Routes>
+      <footer className="fixed bottom-0 right-0 m-2 flex items-center space-x-1 text-xs text-gray-400 px-3 py-1 rounded">
+        <Link to="/" title="Home" className="hover:underline flex items-center space-x-1">
+          <i className="fas fa-home"></i><span>Home</span>
+        </Link>
+        <span className="mx-1 px-2"> | </span>
 
-      {/* <DebugPanel
-        templates={currentTemplateData}
-        activeIndex={activeIndex}
-        isAnimatingFilter={isAnimatingFilter}
-      /> */}
+        <Link to="/shipping" title="Shipping and Delivery" className="hover:underline flex items-center space-x-1">
+          <i className="fas fa-truck"></i><span>Shipping</span>
+        </Link>
+        <span className="mx-1 px-2"> | </span>
+
+        <Link to="/cancellation" title="Cancellation and Refund" className="hover:underline flex items-center space-x-1">
+          <i className="fas fa-ban"></i><span>Cancel</span>
+        </Link>
+        <span className="mx-1 px-2"> | </span>
+
+        <Link to="/privacy" title="Privacy Policy" className="hover:underline flex items-center space-x-1">
+          <i className="fas fa-user-secret"></i><span>Privacy</span>
+        </Link>
+        <span className="mx-1 px-2"> | </span>
+
+        <Link to="/contact" title="Contact Us" className="hover:underline flex items-center space-x-1">
+          <i className="fas fa-envelope"></i><span>Contact</span>
+        </Link>
+        <span className="mx-1 px-2"> | </span>
+
+        <a href="/terms" title="Terms and Conditions" className="hover:underline flex items-center space-x-1">
+          <i className="fas fa-file-contract"></i><span>Terms</span>
+        </a>
+      </footer>
     </>
   );
 };
