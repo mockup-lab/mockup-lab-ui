@@ -6,11 +6,6 @@ import {
   SheetContent,
   SheetTrigger
 } from '@/components/ui/sheet';
-import {
-  NavigationMenu,
-  NavigationMenuList,
-  NavigationMenuItem
-} from '@/components/ui/navigation-menu';
 import { BookOpenIcon, MenuIcon } from 'lucide-react';
 import TemplateForm from './TemplateForm';
 import TemplateList from './TemplateList';

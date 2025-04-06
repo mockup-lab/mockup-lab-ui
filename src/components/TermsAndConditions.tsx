@@ -1,5 +1,3 @@
-import React from 'react';
-
 const TermsAndConditions = () => {
   return (
     <div className="w-full max-w-4xl pl-10 pr-6 py-8 text-left">

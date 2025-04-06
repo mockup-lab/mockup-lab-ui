@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Star as StarInterface } from '../types';
 
 class Star implements StarInterface {

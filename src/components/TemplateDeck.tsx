@@ -36,7 +36,7 @@ const TemplateDeck = forwardRef<TemplateDeckHandle, TemplateDeckProps>(({
   const isSwipingRef = useRef(false);
   const swipeThreshold = 50;
   const [isInitialized, setIsInitialized] = useState(false);
-  const [hasFocus, setHasFocus] = useState(false);
+  const [, setHasFocus] = useState(false);
 
   // Initialize component
   useEffect(() => {
