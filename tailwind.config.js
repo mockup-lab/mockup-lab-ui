@@ -52,6 +52,31 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
+  			},
+  			// High contrast color schemes
+  			hc: {
+  				light: {
+  					background: '#ffffff',
+  					foreground: '#000000',
+  					primary: '#0055cc',
+  					secondary: '#4a4a4a',
+  					accent: '#ff6600',
+  					destructive: '#cc0000',
+  					border: '#cccccc',
+  					text: '#000000',
+  					muted: '#f0f0f0'
+  				},
+  				dark: {
+  					background: '#000000',
+  					foreground: '#ffffff',
+  					primary: '#4d9eff',
+  					secondary: '#b3b3b3',
+  					accent: '#ff9933',
+  					destructive: '#ff4d4d',
+  					border: '#333333',
+  					text: '#ffffff',
+  					muted: '#1a1a1a'
+  				}
   			}
   		}
   	}

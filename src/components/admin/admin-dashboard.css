@@ -1,0 +1,20 @@
+/* Admin dashboard specific styles */
+
+/* Override body styles when admin dashboard is active */
+body:has(.admin-dashboard) {
+  padding-top: 0 !important;
+  overflow: hidden !important;
+  display: block !important;
+  align-items: initial !important;
+  justify-content: initial !important;
+}
+
+/* Ensure the admin dashboard takes full viewport */
+.admin-dashboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+}
